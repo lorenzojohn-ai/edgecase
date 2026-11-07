@@ -4,7 +4,9 @@ import { Activity, AlertCircle, ArrowDownToLine, ArrowLeft, ArrowRight, BrainCir
 import type { Project, TestCase, TestDraft, TestStatus } from '@/lib/schema';
 import { DemoRegistration } from '@/components/DemoRegistration';
 
-type Tab = 'workspace' | 'dashboard' | 'sandbox';
+import { AutoRunner } from '@/components/AutoRunner';
+
+type Tab = 'workspace' | 'dashboard' | 'sandbox' | 'automated';
 const KEY = 'edgecase-v01-project';
 const CATEGORIES = ['validation', 'workflow', 'accessibility', 'reliability'] as const;
 const PRIORITIES = ['high', 'medium', 'low'] as const;
@@ -19,7 +21,7 @@ function reportHtml(p: Project) { const rows = p.tests.map((t,i)=>`<tr><td>${i+1
 export default function Home() {
  const [hydrated,setHydrated] = useState(false);
  const [project,setProject] = useState<Project|null>(null);
- const [tab,setTab] = useState<Tab>('workspace');
+ const [tab,setTab] = useState<Tab>('automated');
  const [name,setName] = useState('Student Club Registration Portal');
  const [description,setDescription] = useState('A web form where high school students register for a school club using their name, school email and grade level.');
  const [requirements,setRequirements] = useState('Name and email are required. Email must be valid and unique. Grade must be 9–12. All controls must be keyboard accessible. Registrations should survive refresh.');
@@ -48,6 +50,7 @@ export default function Home() {
   <aside className="sidebar">
    <div className="brand"><span className="brand-mark"><Code2 size={22}/></span><div><strong>EdgeCase<span className="brand-dot">.</span></strong><small>AI TESTING STUDIO</small></div></div>
    <div className="side-group"><span className="side-label">WORKSPACE</span>
+    <button className={`nav-item ${tab==='automated'?'active':''}`} onClick={()=>setTab('automated')}><Activity size={18}/> Run browser checks</button>
     <button className={`nav-item ${tab==='workspace'?'active':''}`} onClick={()=>setTab('workspace')}><ClipboardCheck size={18}/> Test workspace</button>
     <button className={`nav-item ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}><LayoutDashboard size={18}/> Results dashboard</button>
     <button className={`nav-item ${tab==='sandbox'?'active':''}`} onClick={()=>setTab('sandbox')}><FlaskConical size={18}/> Buggy demo app</button>
@@ -58,9 +61,10 @@ export default function Home() {
    <div className="side-bottom"><span className="status-dot"/> v0.1 · Launchpad build</div>
   </aside>
   <main className="main-content">
-   <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <strong>{tab==='workspace'?'Test planning':tab==='dashboard'?'Results dashboard':'Buggy demo application'}</strong></div><div className="topbar-right"><span className="top-tag"><Sparkles size={13}/> MCF Launchpad</span><span className="avatar">EC</span></div></header>
+   <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <strong>{tab==='automated'?'Automated browser testing':tab==='workspace'?'Test planning':tab==='dashboard'?'Results dashboard':'Buggy demo application'}</strong></div><div className="topbar-right"><span className="top-tag"><Sparkles size={13}/> MCF Launchpad</span><span className="avatar">EC</span></div></header>
    <div className="content">
     {message && <div role="status" className="notice"><CircleHelp size={17}/><span>{message}</span><button aria-label="Dismiss notification" onClick={()=>setMessage('')}><X size={16}/></button></div>}
+    <div hidden={tab!=='automated'}><AutoRunner/></div>
     {tab==='workspace' && <>
      <div className="page-intro"><div><div className="eyebrow">THE WORKSPACE</div><h1>Test smarter, <em>ship better.</em></h1><p>Turn an app idea into an actionable test plan. Then validate the results yourself.</p></div>{project && <button className="btn ghost" onClick={()=>{setProject(null);setSelected(null);setExplanation(null);setMessage('Start a new plan below. Your previous plan is replaced only after generation.');}}><Plus size={17}/> New project</button>}</div>
      {!project ? <div className="setup-grid"><section className="panel setup-panel"><div className="panel-heading"><div className="heading-icon"><BrainCircuit size={21}/></div><div><h2>Create your test plan</h2><p>Describe what your app does and what correct behavior looks like.</p></div></div>
