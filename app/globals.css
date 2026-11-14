@@ -26,3 +26,23 @@
 .workspace-card strong { font-family:Georgia,serif; font-size:1.6rem; font-weight:500; }
 .workspace-create, .project-shell .python-studio, .project-shell #automated-runner { color:#1d2026; background:#f7f4eb; border-color:#e5daca; border-radius:20px; }
 .project-shell .btn.primary { background:#fa8729; color:#161616; border-color:#fa8729; border-radius:999px; }
+
+.project-shell button { font-family: Inter, system-ui, sans-serif; font-weight: 650; }
+.project-shell button:not(:disabled) { cursor: pointer; }
+.project-shell button:focus-visible { outline: 3px solid #748cff; outline-offset: 3px; }
+.project-shell .btn:not(:disabled):hover, .workspace-card:hover { box-shadow: 0 6px 16px #10142630; }
+.project-shell .btn.primary:not(:disabled):hover { background: #ffab64; }
+.demo-action { margin-top: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  .project-shell button { transition: background-color 180ms, box-shadow 180ms, transform 180ms; }
+  .project-shell .btn:not(:disabled):hover, .workspace-card:hover { transform: translateY(-2px); }
+  .project-shell .btn:not(:disabled):active, .workspace-card:active { transform: scale(.98); }
+  @supports (animation-timeline: view()) {
+    .python-result, #automated-runner article { animation: result-enter linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+  }
+}
+@keyframes result-enter {
+  from { opacity: .55; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

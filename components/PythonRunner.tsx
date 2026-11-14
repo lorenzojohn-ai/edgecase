@@ -162,6 +162,16 @@ export function PythonRunner({ workspaceId = "legacy", demo = true }: { workspac
       <button className="btn primary" disabled={busy || planning} onClick={() => void run("manual")}>Run Python checks</button>
       {busy && !planning && <button className="btn outline" onClick={() => stop.current()}>Stop run</button>}
     </div>
+    <button className="btn outline demo-action" disabled={busy || planning} onClick={() => {
+      setCode(example);
+      setName("judge_average");
+      setBehavior("For one or two judge scores, average all scores. For three or more, drop one highest and one lowest score, then average the rest. Use exact whole-number averages in tests.");
+      setCases(sample);
+      setAiDraft(false);
+      setReviewCases([]);
+      clearReview();
+      setStatus("Buggy demo loaded. Run Gemini agent to test it.");
+    }}>Load buggy demo</button>
     <p role="status">{status}</p>
     {candidate && <article className="python-result">
       <h3>Approve proposed change?</h3>
