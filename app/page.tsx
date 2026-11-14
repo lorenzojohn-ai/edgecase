@@ -4,9 +4,11 @@ import { Activity, AlertCircle, ArrowDownToLine, ArrowLeft, ArrowRight, BrainCir
 import type { Project, TestCase, TestDraft, TestStatus } from '@/lib/schema';
 import { DemoRegistration } from '@/components/DemoRegistration';
 
+import { WorkspaceHome } from "@/components/WorkspaceHome";
+import { PythonRunner } from '@/components/PythonRunner';
 import { AutoRunner } from '@/components/AutoRunner';
 
-type Tab = 'workspace' | 'dashboard' | 'sandbox' | 'automated';
+type Tab = 'workspace' | 'dashboard' | 'sandbox' | 'automated' | 'python';
 const KEY = 'edgecase-v01-project';
 const CATEGORIES = ['validation', 'workflow', 'accessibility', 'reliability'] as const;
 const PRIORITIES = ['high', 'medium', 'low'] as const;
@@ -18,7 +20,8 @@ function saveFile(filename: string, content: string, type: string) { const blob 
 function escapeHtml(s: string) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c)); }
 function reportHtml(p: Project) { const rows = p.tests.map((t,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(t.title)}</td><td>${escapeHtml(t.status)}</td><td>${escapeHtml(t.expectedResult)}</td><td>${escapeHtml(t.observedResult || 'Not recorded')}</td><td>${escapeHtml(t.evidence || 'None')}</td><td>${escapeHtml(t.executionSource || 'Not run')}</td></tr>`).join(''); return `<!doctype html><html lang="en"><meta charset="utf-8"><title>EdgeCase report</title><style>body{font:14px system-ui;padding:32px;color:#142036}h1{margin-bottom:0}small{color:#617085}table{border-collapse:collapse;width:100%;margin-top:24px}td,th{padding:12px;text-align:left;border:1px solid #d8dfeb;vertical-align:top}th{background:#f2f5f9}</style><h1>EdgeCase Test Report</h1><small>Created ${escapeHtml(readable(new Date().toISOString()))} · ${escapeHtml(p.generatedBy === 'demo' ? 'Fixed sample templates' : 'AI-generated plan')} · Manual, user-recorded results</small><h2>${escapeHtml(p.name)}</h2><p>${escapeHtml(p.description)}</p><table><thead><tr><th>#</th><th>Test</th><th>Recorded status</th><th>Expected</th><th>Observed</th><th>Evidence</th><th>Source</th></tr></thead><tbody>${rows}</tbody></table><p><small>Recorded failures reflect user observations, not independent automated verification. Suggested tests are not confirmed defects.</small></p></html>`; }
 
-export default function Home() {
+export default function Home() { return <WorkspaceHome legacy={<LegacyWorkspace />} />; }
+function LegacyWorkspace() {
  const [hydrated,setHydrated] = useState(false);
  const [project,setProject] = useState<Project|null>(null);
  const [tab,setTab] = useState<Tab>('automated');
@@ -50,6 +53,7 @@ export default function Home() {
   <aside className="sidebar">
    <div className="brand"><span className="brand-mark"><Code2 size={22}/></span><div><strong>EdgeCase<span className="brand-dot">.</span></strong><small>AI TESTING STUDIO</small></div></div>
    <div className="side-group"><span className="side-label">WORKSPACE</span>
+    <button className={`nav-item ${tab==='python'?'active':''}`} onClick={()=>setTab('python')}><Code2 size={18}/> Test Python</button>
     <button className={`nav-item ${tab==='automated'?'active':''}`} onClick={()=>setTab('automated')}><Activity size={18}/> Run browser checks</button>
     <button className={`nav-item ${tab==='workspace'?'active':''}`} onClick={()=>setTab('workspace')}><ClipboardCheck size={18}/> Test workspace</button>
     <button className={`nav-item ${tab==='dashboard'?'active':''}`} onClick={()=>setTab('dashboard')}><LayoutDashboard size={18}/> Results dashboard</button>
@@ -61,10 +65,11 @@ export default function Home() {
    <div className="side-bottom"><span className="status-dot"/> v0.1 · Launchpad build</div>
   </aside>
   <main className="main-content">
-   <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <strong>{tab==='automated'?'Automated browser testing':tab==='workspace'?'Test planning':tab==='dashboard'?'Results dashboard':'Buggy demo application'}</strong></div><div className="topbar-right"><span className="top-tag"><Sparkles size={13}/> MCF Launchpad</span><span className="avatar">EC</span></div></header>
+   <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <strong>{tab==='python'?'Python workspace':tab==='automated'?'Automated browser testing':tab==='workspace'?'Test planning':tab==='dashboard'?'Results dashboard':'Buggy demo application'}</strong></div><div className="topbar-right"><span className="top-tag"><Sparkles size={13}/> MCF Launchpad</span><span className="avatar">EC</span></div></header>
    <div className="content">
     {message && <div role="status" className="notice"><CircleHelp size={17}/><span>{message}</span><button aria-label="Dismiss notification" onClick={()=>setMessage('')}><X size={16}/></button></div>}
-    <div hidden={tab!=='automated'}><AutoRunner/></div>
+    {tab==='python' && <PythonRunner workspaceId="legacy-python"/>}
+    <div hidden={tab!=='automated'}><AutoRunner workspaceId="legacy-html"/></div>
     {tab==='workspace' && <>
      <div className="page-intro"><div><div className="eyebrow">THE WORKSPACE</div><h1>Test smarter, <em>ship better.</em></h1><p>Turn an app idea into an actionable test plan. Then validate the results yourself.</p></div>{project && <button className="btn ghost" onClick={()=>{setProject(null);setSelected(null);setExplanation(null);setMessage('Start a new plan below. Your previous plan is replaced only after generation.');}}><Plus size={17}/> New project</button>}</div>
      {!project ? <div className="setup-grid"><section className="panel setup-panel"><div className="panel-heading"><div className="heading-icon"><BrainCircuit size={21}/></div><div><h2>Create your test plan</h2><p>Describe what your app does and what correct behavior looks like.</p></div></div>

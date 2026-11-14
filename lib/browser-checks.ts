@@ -42,7 +42,10 @@ function runInFrame({ test, token }: Command) {
       }
       await new Promise(resolve => setTimeout(resolve, 450));
       const observed = find(test.assertion.selector).innerText.trim().slice(0, 5000);
-      const present = observed.includes(test.assertion.text);
+      // Gemini may include sentence punctuation from the requirements.
+      const expected = test.assertion.text.trim();
+      const phrase = expected.replace(/[.!?]+$/, "").trimEnd() || expected;
+      const present = observed.includes(phrase);
       reply({ passed: present === test.assertion.present, observed: observed.slice(0, 1000), steps });
     } catch (error) {
       reply({ error: error instanceof Error ? error.message : "Browser check failed", steps });

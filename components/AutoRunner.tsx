@@ -1,5 +1,6 @@
 "use client";
 
+import { useWorkspaceState } from "./useWorkspaceState";
 import { useRef, useState } from "react";
 import { Checks, type Test } from "@/lib/agent-schema";
 import { openFrame } from "@/lib/browser-checks";
@@ -37,21 +38,21 @@ type Result = {
   steps: string[];
 };
 
-export function AutoRunner() {
-  const [code, setCode] = useState(DEMO);
-  const [requirements, setRequirements] = useState(DEMO_RULES);
+export function AutoRunner({ workspaceId = "legacy", demo = true }: { workspaceId?: string; demo?: boolean }) {
+  const [code, setCode] = useWorkspaceState(workspaceId, "code", demo ? DEMO : "");
+  const [requirements, setRequirements] = useWorkspaceState(workspaceId, "requirements", demo ? DEMO_RULES : "");
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
-  const [results, setResults] = useState<Result[]>([]);
+  const [results, setResults] = useWorkspaceState<Result[]>(workspaceId, "results", []);
   const [busy, setBusy] = useState(false);
-  const [source, setSource] = useState("");
-  const [lastPlan, setLastPlan] = useState<{ tests: Test[]; label: string }>();
+  const [source, setSource] = useWorkspaceState(workspaceId, "source", "");
+  const [lastPlan, setLastPlan] = useWorkspaceState<{ tests: Test[]; label: string } | undefined>(workspaceId, "lastPlan", undefined);
   const host = useRef<HTMLDivElement>(null);
-  const [runInput, setRunInput] = useState<{ code: string; requirements: string }>();
-  const [repair, setRepair] = useState<{
+  const [runInput, setRunInput] = useWorkspaceState<{ code: string; requirements: string } | undefined>(workspaceId, "runInput", undefined);
+  const [repair, setRepair] = useWorkspaceState<{
     code: string; cause: string; search: string; replacement: string; checks: Result[];
-  }>();
-  const [repairHistory, setRepairHistory] = useState<string[]>([]);
+  } | undefined>(workspaceId, "repair", undefined);
+  const [repairHistory, setRepairHistory] = useWorkspaceState<string[]>(workspaceId, "repairHistory", []);
 
   async function execute(frameHost: HTMLDivElement, html: string, test: Test): Promise<Result> {
     const observations: string[] = [];
@@ -94,7 +95,7 @@ export function AutoRunner() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code, requirements, evidence, previousAttempt }),
-          signal: AbortSignal.timeout(22000),
+          signal: AbortSignal.timeout(42000),
         });
         const proposal = await response.json();
         if (!response.ok) throw Error(proposal.error || "Automatic debugging failed.");
@@ -183,7 +184,7 @@ export function AutoRunner() {
   return <section className="panel setup-panel" id="automated-runner">
     <div className="eyebrow">AUTOMATED BROWSER TESTING</div>
     <h2>Run browser checks</h2>
-    <p>Paste a self-contained HTML form with inline JavaScript you trust. Use fictional data. Gemini receives the form control inventory and rules.</p>
+    <p>Paste a self-contained HTML form with inline JavaScript you trust. Use real or sample project code you have permission to share. Remove secrets and private records. Gemini receives the form control inventory and rules.</p>
     <label className="field">HTML and JavaScript
       <textarea rows={10} value={code} maxLength={60000} onChange={event => setCode(event.target.value)} disabled={busy} spellCheck={false} />
     </label>
